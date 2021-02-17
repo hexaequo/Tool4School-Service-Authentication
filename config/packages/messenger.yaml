@@ -34,7 +34,7 @@ framework:
                         name: main
                         type: direct
                     queues:
-                        api:
+                        authentication:
                             binding_keys: [ authentication ]
 
             failed: 'doctrine://default?queue_name=failed'
