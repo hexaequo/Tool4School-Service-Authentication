@@ -4,6 +4,7 @@
 namespace App\Tests\unit\Messenger\Serializer;
 
 
+use App\Exception\Request\JsonNotParsableException;
 use App\Messenger\ArrayMessage;
 use App\Messenger\Serializer\MessageSerializer;
 use App\Tests\unit\UnitTestCase;
@@ -49,19 +50,13 @@ class MessageSerializerTest extends UnitTestCase
         ];
 
         $serializer = self::$container->get(MessageSerializer::class);
+        $this->expectException(JsonNotParsableException::class);
         $result = $serializer->decode($encodedEnvelope);
-        $this->assertInstanceOf(Envelope::class,$result);
-
-        /** @var Envelope $result */
-        $this->assertInstanceOf(ArrayMessage::class, $result->getMessage());
-
-        /** @var ArrayMessage $message */
-        $message = $result->getMessage();
-        $this->assertEquals(['value'=>123],$message->getData());
     }
 
     public function testEncode() {
         $message = new ArrayMessage('abc',['test'=>123]);
+        $sentAt = $message->getSentAt();
 
         $envelope = new Envelope($message);
         $envelope = $envelope->with(... [new AmqpStamp('authentication')]);
@@ -71,7 +66,15 @@ class MessageSerializerTest extends UnitTestCase
 
         $this->assertIsArray($encoded);
         $this->assertArrayHasKey('body',$encoded);
-        $this->assertEquals(['id'=>'abc','data'=>['test'=>123]],json_decode($encoded['body'],true));
+        $this->assertEquals([
+            'id'=>'abc',
+            'data'=>['test'=>123],
+            'sentAt' => $sentAt->format('Y-m-d H:i:s.v'),
+            'startedAt' => null,
+            'endedAt' => null,
+            'receivedAt' => null,
+            'ended' => false
+        ],json_decode($encoded['body'],true));
 
         $this->assertArrayHasKey('headers',$encoded);
         $this->assertArrayHasKey('stamps',$encoded['headers']);
