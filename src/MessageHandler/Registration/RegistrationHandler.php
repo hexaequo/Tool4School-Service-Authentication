@@ -5,14 +5,16 @@ namespace App\MessageHandler\Registration;
 
 
 use App\Entity\User;
+use App\MessageHandler\AbstractHandler;
 use App\Messenger\ArrayMessage;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class RegistrationHandler
+class RegistrationHandler extends AbstractHandler
 {
     public function __construct(
       private EntityManagerInterface $entityManager,
@@ -25,49 +27,20 @@ class RegistrationHandler
     {
         $data = $message->getData();
 
-        $missingKeys = [];
-        foreach(['username','password'] as $key) {
-            if(!isset($data[$key])) { $missingKeys[] = $key; }
-        }
-
-        if(!empty($missingKeys)) {
-            $this->messageBus->dispatch(new ArrayMessage($message->getId(), [
-                'code' => 422,
-                'error' => [
-                    'title' => 'Fields are missing in the request.',
-                    'fields' => $missingKeys
-                ]
-            ]));
-            return;
-        }
+        $this->checkFieldsMissing($message,['username','password']);
 
         $user = new User();
         $user->setUsername($data['username']);
         $user->setPassword($this->passwordEncoder->encodePassword($user,$data['password']));
 
-        $violations = $this->validator->validate($user);
-
-        if($violations->count() > 0) {
-            $violationData = [];
-            foreach($violations as $violation) {
-                $violationData[] = ['message' => $violation->getMessage(),'field'=>$violation->getPropertyPath()];
-            }
-            $this->messageBus->dispatch(new ArrayMessage($message->getId(), [
-                'code' => 400,
-                'error' => [
-                    'title' => 'Request could not be handled because of violations.',
-                    'violations' => $violationData
-                ]
-            ]));
-            return;
-        }
+        $this->validate($this->validator, $user);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
         $this->messageBus->dispatch(new ArrayMessage($message->getId(), [
             'code' => 201,
-            'id' => $user->getId()
+            'Content-Location' => '/me'
         ]));
     }
 }

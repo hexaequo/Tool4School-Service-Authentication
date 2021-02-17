@@ -4,14 +4,17 @@
 namespace App\MessageHandler;
 
 
+use App\Exception\MessengerException;
 use App\MessageHandler\Registration\RegistrationHandler;
 use App\Messenger\ArrayMessage;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class ArrayMessageHandler implements MessageHandlerInterface
 {
     public function __construct(
-        private RegistrationHandler $registrationHandler
+        private RegistrationHandler $registrationHandler,
+        private MessageBusInterface $messageBus
     ){}
 
     public function __invoke(ArrayMessage $message)
@@ -23,8 +26,16 @@ class ArrayMessageHandler implements MessageHandlerInterface
                     break;
                 default: $handler = null;
             }
+            try {
+                if($handler) $handler($message);
+            } catch (MessengerException $e) {
+                $responseMessage = json_decode($e->getMessage()) ?? $e->getMessage();
 
-            if($handler) $handler($message);
+                $this->messageBus->dispatch(new ArrayMessage($message->getId(), [
+                    'code' => $e->getStatusCode(),
+                    'error' => $responseMessage
+                ]));
+            }
         }
     }
 }
