@@ -37,7 +37,6 @@ class RegistrationHandler extends AbstractHandler
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-
         $this->messageBus->dispatch(new ArrayMessage($message->getId(), [
             'code' => 201,
             'Content-Location' => '/me'
