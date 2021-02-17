@@ -1,0 +1,36 @@
+version: '3.8'
+
+networks:
+  t4s_api_t4s:
+    external: true
+
+volumes:
+  t4s_authentication_data:
+    driver: local
+
+services:
+  t4s_authentication_postgres:
+    container_name: t4s_authentication_postgres
+    image: postgres:13.1-alpine
+    volumes:
+      - t4s_authentication_data:/var/lib/postgresql/data
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: P4s5w0rD
+    networks:
+      - t4s_api_t4s
+
+  t4s_authentication_php:
+    container_name: t4s_authentication_php
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - ./:/var/www
+      - /var/www/vendor
+      - /var/www/var
+    networks:
+      - t4s_api_t4s
+    depends_on:
+      - t4s_authentication_postgres
