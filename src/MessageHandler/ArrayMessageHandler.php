@@ -15,6 +15,8 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class ArrayMessageHandler implements MessageHandlerInterface
 {
+    private ArrayMessage $message;
+
     public function __construct(
         private RegistrationHandler $registrationHandler,
         private MessageBusInterface $messageBus
@@ -23,14 +25,17 @@ class ArrayMessageHandler implements MessageHandlerInterface
     public function __invoke(ArrayMessage $message)
     {
         try {
-            if(isset($message->getData()['action'])) {
-                switch ($message->getData()['action']) {
-                    case 'register':
-                        $handler = $this->registrationHandler;
-                        break;
-                    default: throw new NoHandlerForActionException($message->getData()['action']);
-                }
-                $handler($message);
+            $this->message = $message;
+            $this->message->setStartedAt(new \DateTime());
+            $messageData = $this->message->getData();
+            if(isset($messageData['action'])) {
+                $handler = match ($messageData['action']) {
+                    'register' => $this->registrationHandler,
+                    default => throw new NoHandlerForActionException($messageData['action']),
+                };
+
+                $response = $handler($messageData);
+                $this->sendMessage($response);
             }
             else {
                 throw new ActionNotFoundException();
@@ -38,10 +43,17 @@ class ArrayMessageHandler implements MessageHandlerInterface
         } catch (MessengerException $e) {
             $responseMessage = json_decode($e->getMessage(),true) ?? $e->getMessage();
 
-            $this->messageBus->dispatch(new ArrayMessage($message->getId(), [
+            $this->sendMessage([
                 'code' => $e->getStatusCode(),
                 'error' => $responseMessage
-            ]));
+            ]);
         }
+    }
+
+    public function sendMessage(array $data) {
+        $this->message->setData($data);
+        $this->message->setEndedAt(new \DateTime());
+        $this->messageBus->dispatch($this->message);
+
     }
 }

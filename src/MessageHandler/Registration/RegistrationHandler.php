@@ -18,16 +18,13 @@ class RegistrationHandler extends AbstractHandler
 {
     public function __construct(
       private EntityManagerInterface $entityManager,
-      private MessageBusInterface $messageBus,
       private UserPasswordEncoderInterface $passwordEncoder,
       private ValidatorInterface $validator
     ){}
 
-    public function __invoke(ArrayMessage $message)
+    public function __invoke(array $data)
     {
-        $data = $message->getData();
-
-        $this->checkFieldsMissing($message,['username','password']);
+        $this->checkFieldsMissing($data,['username','password']);
 
         $user = new User();
         $user->setUsername($data['username']);
@@ -37,9 +34,9 @@ class RegistrationHandler extends AbstractHandler
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-        $this->messageBus->dispatch(new ArrayMessage($message->getId(), [
+        return [
             'code' => 201,
             'Content-Location' => '/me'
-        ]));
+        ];
     }
 }

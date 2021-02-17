@@ -11,11 +11,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class AbstractHandler
 {
-    abstract public function __invoke(ArrayMessage $message);
+    abstract public function __invoke(array $data);
 
-    public function checkFieldsMissing(ArrayMessage $message, array $fields) {
+    public function checkFieldsMissing(array $data, array $fields) {
         foreach ($fields as $key => $field) {
-            if(isset($message->getData()[$field])) {
+            if(isset($data[$field])) {
                 unset($fields[$key]);
             }
         }
