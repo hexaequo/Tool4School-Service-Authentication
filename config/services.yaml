@@ -35,3 +35,12 @@ services:
         arguments:
             $defaultContext:
                 datetime_format: 'Y-m-d H:i:s.v'
+
+
+    App\Security\Authenticator:
+        arguments:
+            - !tagged_iterator app.authenticators
+
+    App\Security\Authenticators\:
+        resource: '../src/Security/Authenticators/'
+        tags: [ 'app.authenticators' ]
