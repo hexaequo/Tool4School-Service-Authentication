@@ -33,7 +33,7 @@ class ArrayMessageHandler implements MessageHandlerInterface
             if(isset($messageData['action'])) {
                 $handler = match ($messageData['action']) {
                     'register' => $this->registrationHandler,
-                    'get_jwt' => $this->getJWTHandler,
+                    'jwt_get' => $this->getJWTHandler,
                     default => throw new NoHandlerForActionException($messageData['action']),
                 };
 
