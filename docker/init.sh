@@ -4,4 +4,9 @@ wait.sh t4s_authentication_postgres:5432 -- symfony console doctrine:database:cr
 wait.sh t4s_authentication_postgres:5432 -- symfony console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=test
 wait.sh t4s_rabbitmq:5672 -- echo "Rabbitmq ready"
 
+mkdir config/jwt/
+
+openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass pass:testpassword
+openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout -passin pass:testpassword
+
 chown -R www-data ./
