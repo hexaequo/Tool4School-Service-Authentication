@@ -9,6 +9,7 @@ use App\Exception\Handler\NoHandlerForActionException;
 use App\Exception\MessengerException;
 use App\MessageHandler\Authentication\GetJWTHandler;
 use App\MessageHandler\Registration\RegistrationHandler;
+use App\MessageHandler\User\MeHandler;
 use App\Messenger\ArrayMessage;
 use Symfony\Component\Messenger\Exception\NoHandlerForMessageException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
@@ -21,6 +22,7 @@ class ArrayMessageHandler implements MessageHandlerInterface
     public function __construct(
         private RegistrationHandler $registrationHandler,
         private GetJWTHandler $getJWTHandler,
+        private MeHandler $meHandler,
         private MessageBusInterface $messageBus
     ){}
 
@@ -34,6 +36,7 @@ class ArrayMessageHandler implements MessageHandlerInterface
                 $handler = match ($messageData['action']) {
                     'register' => $this->registrationHandler,
                     'jwt_get' => $this->getJWTHandler,
+                    'me' => $this->meHandler,
                     default => throw new NoHandlerForActionException($messageData['action']),
                 };
 
