@@ -6,6 +6,7 @@ namespace App\MessageHandler\User;
 
 use App\MessageHandler\AbstractHandler;
 use App\Security\Authenticator;
+use Symfony\Component\HttpFoundation\Response;
 
 class MeHandler extends AbstractHandler
 {
@@ -20,7 +21,7 @@ class MeHandler extends AbstractHandler
         $user = $this->authenticatorHandler->authenticate($data);
 
         return [
-            'code' => 200,
+            'code' => Response::HTTP_OK,
             'id' => $user->getId(),
             'username' => $user->getUsername()
         ];

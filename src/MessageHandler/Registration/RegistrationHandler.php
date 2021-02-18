@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\MessageHandler\AbstractHandler;
 use App\Messenger\ArrayMessage;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -35,7 +36,7 @@ class RegistrationHandler extends AbstractHandler
         $this->entityManager->persist($user);
         $this->entityManager->flush();
         return [
-            'code' => 201,
+            'code' => Response::HTTP_CREATED,
             'Content-Location' => '/me'
         ];
     }

@@ -10,6 +10,7 @@ use App\Exception\Authentication\UserNotFoundException;
 use App\MessageHandler\AbstractHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class GetJWTHandler extends AbstractHandler
@@ -34,7 +35,7 @@ class GetJWTHandler extends AbstractHandler
         if(!$this->passwordEncoder->isPasswordValid($user,$data['password'])) throw new BadCredentialsException();
 
         return [
-            'code' => 200,
+            'code' => Response::HTTP_OK,
             'token' => $this->JWTEncoder->encode(['username'=>$data['username']])
         ];
     }

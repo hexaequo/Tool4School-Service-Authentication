@@ -5,13 +5,14 @@ namespace App\Exception\Request;
 
 
 use App\Exception\MessengerException;
+use Symfony\Component\HttpFoundation\Response;
 
 class JsonNotParsableException extends MessengerException
 {
     public function __construct()
     {
         parent::__construct(
-            400,
+            Response::HTTP_BAD_REQUEST,
             'Request body can not be parsed to json.'
         );
     }
